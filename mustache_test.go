@@ -659,3 +659,26 @@ func compareTags(t *testing.T, actual []Tag, expected []tag) {
 		}
 	}
 }
+
+func TestCustomDelimiter(t *testing.T) {
+	var (
+		in  = "hello ${name}"
+		out = "hello world"
+	)
+
+	tmpl := NewTemplate(in, "${", "}", 0, 1, []interface{}{}, true, &FileProvider{Paths: []string{" ", ""}})
+	vars := map[string]interface{}{
+		"name": "world",
+	}
+
+	if err := tmpl.Parse(); err != nil {
+		t.Fatal(err)
+	}
+	result, err := tmpl.Render(vars)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result != out {
+		t.Errorf("wont %s, but got %s", out, result)
+	}
+}

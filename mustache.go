@@ -98,7 +98,7 @@ type partialElement struct {
 	prov   PartialProvider
 }
 
-// Template represents a compilde mustache template
+// Template represents a compiled mustache template
 type Template struct {
 	data     string
 	otag     string
@@ -108,6 +108,21 @@ type Template struct {
 	elems    []interface{}
 	forceRaw bool
 	partial  PartialProvider
+}
+
+// NewTemplate initializes a new mustache template
+// You must call Template.Parse before rendering.
+func NewTemplate(data string, otag string, ctag string, p int, curline int, elems []interface{}, forceRaw bool, partial PartialProvider) Template {
+	return Template{
+		data:     data,
+		otag:     otag,
+		ctag:     ctag,
+		p:        p,
+		curline:  curline,
+		elems:    elems,
+		forceRaw: forceRaw,
+		partial:  partial,
+	}
 }
 
 type parseError struct {
@@ -399,7 +414,8 @@ func (tmpl *Template) parseSection(section *sectionElement) error {
 	}
 }
 
-func (tmpl *Template) parse() error {
+// Parse compiles the template.
+func (tmpl *Template) Parse() error {
 	for {
 		textResult, err := tmpl.readText()
 		text := textResult.text
@@ -802,8 +818,8 @@ func ParseStringPartials(data string, partials PartialProvider) (*Template, erro
 // to efficiently render the template multiple times with different data
 // sources.
 func ParseStringPartialsRaw(data string, partials PartialProvider, forceRaw bool) (*Template, error) {
-	tmpl := Template{data, "{{", "}}", 0, 1, []interface{}{}, forceRaw, partials}
-	err := tmpl.parse()
+	tmpl := NewTemplate(data, "{{", "}}", 0, 1, []interface{}{}, forceRaw, partials)
+	err := tmpl.Parse()
 
 	if err != nil {
 		return nil, err
@@ -842,8 +858,8 @@ func ParseFilePartialsRaw(filename string, forceRaw bool, partials PartialProvid
 		return nil, err
 	}
 
-	tmpl := Template{string(data), "{{", "}}", 0, 1, []interface{}{}, forceRaw, partials}
-	err = tmpl.parse()
+	tmpl := NewTemplate(string(data), "{{", "}}", 0, 1, []interface{}{}, forceRaw, partials)
+	err = tmpl.Parse()
 
 	if err != nil {
 		return nil, err
